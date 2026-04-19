@@ -1,30 +1,17 @@
-const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
-const dotenv = require("dotenv");
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import { connectDB } from "./config/db.config.js";
 
 // Load environment variables from .env file
 dotenv.config();
 
+// App Initialization
 const app = express();
 
 // --- Middleware ---
 app.use(cors());
 app.use(express.json()); // Essential for parsing JSON bodies
-
-// --- Database Connection ---
-const connectDB = async () => {
-  try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI);
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
-  } catch (error) {
-    console.error(`Error: ${error.message}`);
-    // Don't exit the process in production (Vercel), just log it
-    if (process.env.NODE_ENV !== "production") {
-      process.exit(1);
-    }
-  }
-};
 
 // Execute DB Connection
 connectDB();
@@ -64,4 +51,4 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 // Crucial for Vercel Serverless Functions
-module.exports = app;
+export default app;
