@@ -1,10 +1,13 @@
 import React from "react";
+import { RouterProvider } from "react-router-dom";
+import router from "./routes/router.jsx";
+import { ToastContainer } from "react-toastify";
 
 export default function App() {
   return (
     <>
-      <h1 className="text-amber-400">Welcome to the React App!</h1>
-      <p>This is a simple React application.</p>
+      <RouterProvider router={router} />
+      <ToastContainer />
     </>
   );
 }

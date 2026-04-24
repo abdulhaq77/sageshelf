@@ -1,49 +1,54 @@
 @import "tailwindcss";
 
 @theme {
-  /* --- Classic Color Palette --- */
-  --color-primary: #1e3a8a;
-  /* Deep Navy */
-  --color-secondary: #64748b;
-  /* Professional Slate */
-  --color-accent: #f59e0b;
-  /* Amber for CTAs/Promotions */
-  --color-success: #10b981;
-  /* Emerald for Payouts/Orders */
-  --color-danger: #ef4444;
-  /* Red for "Out of Stock" or Alerts */
+  /* Professional Bookstore Palette */
+  --color-primary: #0f172a;
+  /* Slate 900 (Deep Navy) */
+  --color-accent: #3b82f6;
+  /* Blue 500 */
   --color-background: #f8fafc;
-  /* Soft Gray Background */
-
-  /* --- Classic Typography --- */
-  --font-sans: "Inter", "Segoe UI", Roboto, system-ui, sans-serif;
-
-  /* --- Custom Measurements (Extended Spacing) --- */
-  --spacing-container: 1280px;
-  --spacing-sidebar: 280px;
-  /* Fixed width for Vendor Dashboard sidebars */
-  --spacing-header: 72px;
-  /* Standard sticky header height */
-
-  /* --- Classic Shadows & Borders --- */
-  --shadow-classic: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --radius-classic: 0.375rem;
-  /* Traditional subtle rounding */
+  /* Slate 50 */
+  --color-success: #10b981;
+  --color-danger: #ef4444;
 }
 
-/* --- Layout Utility Classes --- */
-@utility custom-container {
-  max-width: var(--spacing-container);
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: 1.5rem;
-  padding-right: 1.5rem;
+@layer base {
+
+  html,
+  body {
+    @apply bg-[--color-background] text-[--color-primary] antialiased;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+  }
+
+  /* Thin Scrollbar */
+  *::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 20px;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: #94a3b8;
+  }
 }
 
-@utility vendor-card {
-  background-color: white;
-  border: 1px solid var(--color-slate-200);
-  border-radius: var(--radius-classic);
-  box-shadow: var(--shadow-classic);
-  padding: 1.5rem;
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    /* IE/Edge */
+    scrollbar-width: none;
+    /* Firefox */
+  }
 }
