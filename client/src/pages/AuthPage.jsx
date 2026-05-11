@@ -1,7 +1,10 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { authSchema } from "../schemas/auth.validation.schema.js";
+import {
+  loginSchema,
+  signupSchema,
+} from "../schemas/auth.validation.schema.js";
 import {
   Library,
   AlertTriangle,
@@ -10,32 +13,105 @@ import {
   X,
   Eye,
   EyeOff,
+  Loader2,
 } from "lucide-react";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext.jsx";
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
-  const [userRole, setUserRole] = useState("customer");
+  const [userRole, setUserRole] = useState("buyer"); // default role for registration
   const [showPass, setShowPass] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
+  const navigate = useNavigate();
+  const { handleLogin, handleSignUp, setUser, setAccessToken } = useAuth();
 
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
     reset,
     setValue,
     watch,
   } = useForm({
-    resolver: zodResolver(authSchema),
+    resolver: zodResolver(isLogin ? loginSchema : signupSchema),
     mode: "onBlur",
-    defaultValues: { role: "customer" },
+    defaultValues: { role: "buyer" },
   });
+
+  console.log("Validation Errors : ", errors);
 
   // This watches all fields to trigger the "X" button visibility
   // eslint-disable-next-line react-hooks/incompatible-library
   const watchedFields = watch();
 
-  const onSubmit = (data) => console.log("Form Submitted:", data);
+  const onSubmit = async (formData) => {
+    console.log("🚀 Submit function triggered!");
+    try {
+      // Check if we are logging in or registering
+      if (isLogin) {
+        console.log("📡 Sending Login Request...");
+        // --- LOGIN LOGIC ---
+        // We only need email and password for login
+        const loginCredentials = {
+          email: formData.email,
+          password: formData.password,
+        };
+
+        console.log("login 1: ", loginCredentials);
+        // calling login API
+        const { message, user, accessToken } =
+          await handleLogin(loginCredentials);
+
+        console.log("login suucess : ", user, message, accessToken);
+
+        toast.success(message);
+        // Redirect based on userRole
+        if (user.role === "seller") {
+          setUser(user);
+          setAccessToken(accessToken);
+          // Redirect to seller dashboard
+          navigate("/seller/dashboard");
+        } else if (user.role === "admin") {
+          setUser(user);
+          setAccessToken(accessToken);
+          // Redirect to admin dashboard
+          navigate("/admin/dashboard");
+        } else {
+          setUser(user);
+          setAccessToken(accessToken);
+          // Redirect to buyer dashboard
+          navigate("/buyer/dashboard");
+        }
+      } else {
+        // --- REGISTER LOGIC ---
+        // We shape the data based on whether they chose 'buyer' or 'seller'
+        const registrationData = {
+          firstName: formData.firstName,
+          surname: formData.surname,
+          email: formData.email,
+          password: formData.password,
+          role: userRole, // from your 'userRole' state ('buyer' or 'seller')
+          agree: formData.agree,
+        };
+
+        // If they are a seller, we include the shopName
+        if (userRole === "seller") {
+          registrationData.shopName = formData.shopName;
+        }
+        console.log("test ... ", registrationData);
+
+        // calling register API
+        const { message } = await handleSignUp(registrationData);
+        toast.success(message);
+        setIsLogin(true); // Switch to login view after successful registration
+      }
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || "Something went wrong";
+      toast.error(errorMsg);
+    }
+  };
 
   return (
     <div className="h-screen w-full flex items-center justify-center bg-primary p-4 lg:p-8 overflow-hidden font-sans">
@@ -110,10 +186,10 @@ export default function AuthPage() {
                     <button
                       type="button"
                       onClick={() => {
-                        setUserRole("customer");
-                        setValue("role", "customer");
+                        setUserRole("buyer");
+                        setValue("role", "buyer");
                       }}
-                      className={`flex-1 flex gap-3 items-center justify-center p-3 rounded-2xl border-2 transition-all ${userRole === "customer" ? "border-[#a3b18a] bg-[#a3b18a]/5 text-primary" : "border-slate-100 text-slate-400"}`}
+                      className={`flex-1 flex gap-3 items-center justify-center p-3 rounded-2xl border-2 transition-all ${userRole === "buyer" ? "border-[#a3b18a] bg-[#a3b18a]/5 text-primary" : "border-slate-100 text-slate-400"}`}
                     >
                       <BookOpen className="w-4 h-4" />{" "}
                       <span className="text-[10px] font-bold">BUYER</span>
@@ -307,9 +383,19 @@ export default function AuthPage() {
 
                 <button
                   type="submit"
-                  className="w-full bg-success hover:bg-[#059669] text-white py-4 rounded-xl font-black text-xs tracking-[0.2em] uppercase transition-all shadow-lg active:scale-[0.95]"
+                  disabled={isSubmitting}
+                  className="w-full flex items-center justify-center gap-3 bg-success hover:bg-[#059669] disabled:bg-slate-300 disabled:cursor-not-allowed text-white py-4 rounded-xl font-black text-xs tracking-[0.2em] uppercase transition-all shadow-lg active:scale-[0.95]"
                 >
-                  {isLogin ? "Authorize Account" : `Create ${userRole} Account`}
+                  {console.log("testing isSubmit : ", isSubmitting)}
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    </>
+                  ) : (
+                    <span>
+                      {isLogin ? "Login" : `Create ${userRole} Account`}
+                    </span>
+                  )}
                 </button>
               </form>
             </div>

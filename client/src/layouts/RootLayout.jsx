@@ -1,19 +1,22 @@
 import React from "react";
+import { useRouteLoaderData } from "react-router-dom";
 import { Outlet } from "react-router-dom";
-import Navbar from "../components/Navbar.jsx";
-import Footer from "../components/Footer.jsx";
+import { useAxios } from "../hooks/useAxios";
+import { AuthProvider } from "../context/AuthContext";
+import { UIProvider } from "../context/UIContext.jsx";
 
 export default function RootLayout() {
+  const authLoaderData = useRouteLoaderData("root-wrapper");
+  console.log("auth loader data", authLoaderData);
+
+  // For the apiClient to have these interceptors active, you must call the hook inside a component that stays mounted
+  useAxios();
+
   return (
-    <div className="flex flex-col min-h-screen">
-      <Navbar />
-
-      {/* Main Content Area */}
-      <main className="grow">
+    <UIProvider>
+      <AuthProvider initialAuthData={authLoaderData}>
         <Outlet />
-      </main>
-
-      <Footer />
-    </div>
+      </AuthProvider>
+    </UIProvider>
   );
 }
