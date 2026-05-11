@@ -10,6 +10,31 @@
   /* Slate 50 */
   --color-success: #10b981;
   --color-danger: #ef4444;
+
+  /* Custom Animations for Loaders */
+  --animate-slow-spin: slow-spin 2s linear infinite;
+  --animate-progress-slide: progress-slide 1.5s infinite linear;
+  --animate-bubble-bounce: bounce 1s infinite;
+
+  @keyframes slow-spin {
+    from {
+      transform: rotate(0deg);
+    }
+
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes progress-slide {
+    0% {
+      transform: translateX(-100%);
+    }
+
+    100% {
+      transform: translateX(200%);
+    }
+  }
 }
 
 @layer base {
@@ -50,5 +75,14 @@
     /* IE/Edge */
     scrollbar-width: none;
     /* Firefox */
+  }
+
+  /* Helper for staggered bubble delays in v4 */
+  .delay-150 {
+    animation-delay: -0.15s;
+  }
+
+  .delay-300 {
+    animation-delay: -0.3s;
   }
 }

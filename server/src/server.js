@@ -2,6 +2,10 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import { connectDB } from "./config/db.config.js";
+import apiRoutes from "./routes/api.routes.js";
+import { corsOptions } from "./config/cors.config.js";
+import cookieParser from "cookie-parser";
+import { seedAdmin } from "./config/db.seedAdmin.config.js";
 
 // Load environment variables from .env file
 dotenv.config();
@@ -10,11 +14,15 @@ dotenv.config();
 const app = express();
 
 // --- Middleware ---
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json()); // Essential for parsing JSON bodies
+app.use(cookieParser()); // For parsing cookies (e.g., refresh token)
 
 // Execute DB Connection
-connectDB();
+await connectDB();
+
+// Seed Admin User
+await seedAdmin();
 
 // --- API Routes ---
 
@@ -27,9 +35,7 @@ app.get("/api/test", (req, res) => {
   });
 });
 
-// Placeholder for Vendor/User routes
-// app.use('/api/users', require('./routes/userRoutes'));
-// app.use('/api/shops', require('./routes/shopRoutes'));
+app.use("/api", apiRoutes);
 
 // --- Error Handling Middleware ---
 app.use((err, req, res, next) => {
