@@ -8,58 +8,39 @@ const bookSchema = new mongoose.Schema(
       trim: true,
       index: true,
     },
-    author: {
-      type: String,
-      required: [true, "Author name is required"],
-      trim: true,
-    },
-    description: {
-      type: String,
-      required: true,
-    },
     price: {
       type: Number,
-      required: true,
-      min: 0,
+      required: [true, "Price is required"],
+      min: [0, "Price cannot be negative"],
     },
     category: {
       type: String,
-      required: true,
-      index: true,
+      required: [true, "Category is required"],
     },
-    coverImage: {
-      type: String, // URL to Cloudinary/S3
-      required: true,
-    },
-    // Digital Asset Specifics
-    fileUrl: {
-      type: String, // Secure link to the full digital file
-      required: true,
-      select: false, // Prevents sending the download link in general API searches
-    },
-    previewUrl: {
-      type: String, // Link to a free sample or first few pages
-    },
-    format: {
+    description: {
       type: String,
-      enum: ["PDF", "EPUB", "MOBI", "Multiple"],
-      default: "PDF",
+      required: [true, "Description is required"],
     },
-    fileSize: {
-      type: String, // e.g., "12MB"
+    coverUrl: {
+      type: String,
+      required: [true, "Cover URL is required"],
     },
-    // Metrics
-    isFeatured: {
-      type: Boolean,
-      default: false,
+    assetUrl: {
+      type: String,
+      required: [true, "Asset URL is required"],
+      unique: true,
     },
-    salesCount: {
-      type: Number,
-      default: 0,
+    sellerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
     rating: {
-      average: { type: Number, default: 0 },
-      count: { type: Number, default: 0 },
+      type: Number,
+      default: 0,
+      min: [0, "Rating cannot be negative"],
+      max: [5, "Rating cannot exceed 5"],
+      required: false,
     },
   },
   {
@@ -68,7 +49,10 @@ const bookSchema = new mongoose.Schema(
 );
 
 // Index for search performance
-bookSchema.index({ title: "text", author: "text" });
+bookSchema.index({ title: "text", description: "text" });
+
+// Create a compound unique index to prevent duplicate book uploads for the same seller
+bookSchema.index({ title: 1, sellerId: 1 }, { unique: true });
 
 const Book = mongoose.model("Book", bookSchema);
 export default Book;

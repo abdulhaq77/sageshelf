@@ -103,22 +103,6 @@ export default function Home() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {featuredBooks.map((book) => (
-            // <div key={book.id} className="group">
-            //   <div className="relative aspect-3/4 overflow-hidden rounded-4xl bg-slate-100 mb-4 shadow-lg border border-transparent group-hover:border-[#a3b18a]/30">
-            //     <img
-            //       src={book.img}
-            //       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-            //       alt={book.title}
-            //     />
-            //   </div>
-            //   <h5 className="font-bold text-slate-900 leading-tight mb-1">
-            //     {book.title}
-            //   </h5>
-            //   <p className="text-xs text-slate-400 font-medium mb-2">
-            //     {book.author}
-            //   </p>
-            //   <p className="font-black text-sm text-success">{book.price}</p>
-            // </div>
             <BuyerBookCard key={book.id} book={book} />
           ))}
         </div>

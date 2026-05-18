@@ -4,9 +4,13 @@ import {
   registerUser,
   refreshToken,
   logout,
+  getProfile,
 } from "../controllers/auth.controller.js";
+import { verifyToken } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
+
+router.get("/me", verifyToken, getProfile);
 
 router.post("/register", registerUser); // register new user
 

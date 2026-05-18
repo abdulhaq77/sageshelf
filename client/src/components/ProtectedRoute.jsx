@@ -1,43 +1,27 @@
 import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/public/AuthContext.jsx";
+import GlobalAppLoader from "./spinners/GlobalAppLoader.jsx";
 
-export default function ProtectedRoute({
-  allowedRoles,
-  redirectPath = "/auth",
-  unauthorizedPath = "/unauthorized",
-}) {
-  const { accessToken, user } = useAuth();
-  const isAuthenticated = accessToken !== null;
+export default function ProtectedRoute({ allowedRoles, children }) {
+  const { user } = useAuth();
 
-  // const location = useLocation();
-
-  console.log(
-    "protected route testing...",
-    "access token",
-    accessToken,
-    "user",
-    user,
-  );
-
-  // for guest
-  if (!isAuthenticated) {
-    <Navigate to={redirectPath} />;
-  }
-  // for buyer(registerd user)
-  if (isAuthenticated && allowedRoles.includes("buyer")) {
-    return <Outlet />;
+  // 1. If we are currently logging out, show a loader and freeze the screen
+  if (user?.role === "logging_out") {
+    return <GlobalAppLoader />;
   }
 
-  // for seller
-  if (isAuthenticated && allowedRoles.includes("seller")) {
-    return <Outlet />;
+  // 2. If they are a guest, they are logged out. Send them to login page.
+  if (!user || user.role === "guest") {
+    return <Navigate to="/auth" replace />;
   }
 
-  // for admin
-  if (isAuthenticated && allowedRoles.includes("admin")) {
-    return <Outlet />;
+  // 3. If they are logged in and have the correct role, let them through
+  if (allowedRoles.includes(user.role)) {
+    return children ? children : <Outlet />;
   }
 
-  return <Navigate to={unauthorizedPath} />;
+  // 4. Only show unauthorized if they are logged in with the WRONG role
+  // (e.g., a buyer trying to view the seller dashboard)
+  return <Navigate to="/unauthorized" replace />;
 }

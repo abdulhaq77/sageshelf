@@ -11,61 +11,72 @@ import {
 // login user
 export const loginUser = async (req, res) => {
   try {
+    console.log("Login attempt with email:", req.body.email);
     const { email, password } = req.body;
-    //   basic validation
-    if (!email || !password) {
-      return res
-        .status(400)
-        .json({ message: "Email and password are required" });
-    }
 
-    //   check if user exists in DB, verify password, generate JWT token, etc.
-    const user = await User.findOne({ email }).select("+password");
-    if (!user) {
+    // (Your existing validation and user check logic) ...
+    const foundUser = await User.findOne({ email }).select("+password");
+
+    if (!foundUser) {
       return res.status(404).json({
-        message: "Does not have account with this email! Sign Up instead.",
-        user: { name: null, role: "guest" },
+        message:
+          "You don't have an account with this email! Please register first.",
       });
     }
-
-    //   verify password
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ message: "Invalid password" });
+    // if user found and password doesn't match
+    if (foundUser && !(await bcrypt.compare(password, foundUser.password))) {
+      return res.status(403).json({ message: "Invalid credentials" });
     }
 
-    //   generate JWT tokens
-    const accessToken = generateAccessToken(user._id);
-    const refreshToken = generateRefreshToken(user._id);
+    // if user found and password matches, generate tokens
 
-    // Save Refresh Token to MongoDB (Using your Token model)
-    await Token.create({
-      userId: user._id,
+    // Generate JWT tokens
+    const accessToken = await generateAccessToken({
+      id: foundUser._id,
+    });
+    const refreshToken = await generateRefreshToken(foundUser._id);
+
+    console.log("Generated Access Token:", accessToken);
+    console.log("Generated Refresh Token:", refreshToken);
+    console.log("found user : ", foundUser);
+
+    // create and Save Refresh Token to MongoDB
+    const newRefreshToken = new Token({
+      userId: foundUser._id,
       token: refreshToken,
     });
+    await newRefreshToken.save();
 
-    // Set the Refresh Token in an HttpOnly, Secure Cookie
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true, // Prevents JS from reading the cookie (No XSS)
-      secure: process.env.NODE_ENV === "production" ? true : false, // Only sent over HTTP (use false for localhost testing)
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Required for cross-site requests (Frontend on 5173, Backend on 5000)
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      path: "/", // Explicitly set the path so it's available everywhere
+    // COOKIE 1: Access Token (Short-lived)
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 15 * 60 * 1000, // 15 Minutes
+      path: "/",
     });
 
-    // Send the Access Token in the response body
+    // SET COOKIE 2: Refresh Token (Long-lived)
+    res.cookie("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 Days
+      path: "/", // Note: You can set path to "/api/auth/refresh" for extra security
+    });
+
+    console.log("sending resp: ", foundUser);
+    // Send User Data ONLY (No tokens in the body!)
     res.status(200).json({
       message: "Login successful",
-      accessToken,
       user: {
-        id: user._id,
-        name: user.name,
-        role: user.role,
+        id: foundUser._id,
+        name: foundUser.name,
+        role: foundUser.role,
       },
     });
   } catch (error) {
-    console.error("Login error:", error);
-    res.status(500).json({ message: "Login failed", error: error.message });
+    res.status(500).json({ message: "Login failed" });
   }
 };
 
@@ -117,73 +128,108 @@ export const registerUser = async (req, res) => {
 
 // refreshing the "access token"
 export const refreshToken = async (req, res) => {
+  const _refreshToken = req.cookies.refreshToken;
+
+  // if no refresh token, block access and ask to login again (treat as expired)
+  if (!_refreshToken) {
+    return res.status(400).json({
+      message: "Session expired",
+      user: {
+        id: null,
+        name: null,
+        role: "guest",
+      },
+    });
+  }
+
   try {
-    const cookies = req.cookies;
-    // if no refresh token exists
-    if (!cookies?.refreshToken) {
-      return res.status(401).json({
-        message: "No refresh token",
-        refreshToken: null,
+    console.log("Received refresh token:", _refreshToken);
+    const decoded = await jwt.verify(
+      _refreshToken.token,
+      process.env.JWT_REFRESH_SECRET,
+    );
+
+    console.log("Decoded refresh token payload:", decoded);
+    console.log("Decoded refresh token user ID:", decoded.id);
+
+    // Check if the token exists in MongoDB
+    const refreshTokenInfo = await Token.findOne({
+      userId: decoded.id,
+    });
+
+    console.log("Refresh token info from DB:", refreshTokenInfo);
+
+    // if token not found in DB, it means the user logged out or token was removed. Treat as expired.
+    if (!refreshTokenInfo.token) {
+      return res.status(403).json({
+        message: "Session expired",
         user: {
+          id: null,
           name: null,
-          role: "guest", // role is null for guest users
+          role: "guest",
         },
       });
     }
 
-    // if refresh token found, then varify
-    const refreshToken = cookies.refreshToken;
+    // if token is valid and exists in DB, generate new access token, and fetch user data to send back
 
-    const decoded = await jwt.verify(
-      refreshToken,
-      process.env.JWT_REFRESH_SECRET,
-    );
+    // genearte new access token
+    const newAccessToken = generateAccessToken({
+      id: decoded.id || decoded._id,
+    });
 
-    const userId = decoded.id || decoded._id;
+    // Fetch user data to send back
+    const foundUser = await User.findById(decoded.id || decoded._id);
 
-    const foundUser = await User.findById(userId);
+    // Send new Access Token as cookie
+    res.cookie("accessToken", newAccessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 15 * 60 * 1000, // 15 Minutes
+    });
 
-    // no user found
-    if (!foundUser)
-      return res.status(401).json({
-        message: "Unauthorized",
-        user: {
-          name: null,
-          role: "buyer",
-        },
-      });
-
-    const accessToken = jwt.sign(
-      { id: foundUser._id },
-      process.env.JWT_ACCESS_SECRET,
-      { expiresIn: "15m" },
-    );
-
+    // send user data back to frontend
     res.status(200).json({
-      message: "token refreshed successfully",
-      accessToken,
+      message: "Access token refreshed",
       user: {
+        id: foundUser._id,
         name: foundUser.name,
         role: foundUser.role,
       },
     });
-  } catch (error) {
-    console.error("JWT Error:", error.message);
-    res.status(403).json({ message: "Invalid or Expired Refresh Token" });
+  } catch (err) {
+    // Again, 403 or 401 ONLY if you want to retry. Since we don't, use 403.
+    return res.status(403).json({
+      message: "Invalid refresh token",
+      user: {
+        id: null,
+        name: null,
+        role: "guest",
+      },
+    });
   }
 };
 
 // logout the user - clear the refresh token cookie and remove it from MongoDB
 export const logout = async (req, res) => {
   try {
-    const { refreshToken } = req.cookies;
+    const { accessToken, refreshToken } = req.cookies;
+
+    console.log("cookies in logout : ", req.cookies);
 
     if (refreshToken) {
       // Physically remove the token from MongoDB
       await Token.findOneAndDelete({ token: refreshToken });
     }
 
-    // Instruct browser to clear the secure cookie
+    // Instruct browser to clear the accessToken cookie
+    res.clearCookie("accessToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+    });
+    // Instruct browser to clear the refreshToken cookie
     res.clearCookie("refreshToken", {
       httpOnly: true,
       secure: true,
@@ -193,9 +239,43 @@ export const logout = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Logged out",
-      user: { name: null, role: "guest" },
+      user: { id: null, name: null, role: "guest" },
     });
   } catch (error) {
     return res.status(500).json({ message: "Logout failed" });
+  }
+};
+
+// get user profile
+export const getProfile = async (req, res) => {
+  console.log("Fetching profile for user ID:", req.userId);
+  try {
+    const { id } = req.userId;
+    const foundUser = await User.findById(id);
+
+    console.log("Found user for profile:", foundUser);
+
+    if (!foundUser) {
+      return res.status(404).json({
+        message: "User not found",
+        user: {
+          id: null,
+          name: null,
+          role: "guest",
+        },
+      });
+    }
+
+    res.status(200).json({
+      message: "User profile fetched successfully",
+      user: {
+        id: foundUser._id,
+        name: foundUser.name,
+        role: foundUser.role,
+      },
+    });
+  } catch (error) {
+    console.error("Error in getProfile:", error);
+    throw error;
   }
 };
