@@ -7,15 +7,14 @@ import SellerLayout from "../layouts/SellerLayout.jsx";
 import AdminLayout from "../layouts/AdminLayout.jsx";
 
 // Pages
+import RoleRedirector from "../components/RoleRedirector.jsx";
 import AuthPage from "../pages/AuthPage.jsx";
-import Home from "../pages/Home.jsx";
 import Categories from "../pages/Categories.jsx";
 import About from "../pages/About.jsx";
 import Contact from "../pages/Contact.jsx";
 import Cart from "../pages/Cart.jsx";
 import ProfileIcon from "../components/ProfileIcon.jsx";
 import StartSelling from "../pages/StartSelling.jsx";
-import SellerDashboard from "../pages/seller/SellerDashboard.jsx";
 import AdminDashboard from "../pages/admin/AdminDashboard.jsx";
 import Settings from "../pages/Buyer/Settings.jsx";
 import BuyerBookDetails from "../pages/BuyerBookDetails.jsx";
@@ -23,111 +22,108 @@ import Wishlist from "../pages/Wishlist.jsx";
 import CheckoutDrawer from "../components/buyer/CheckoutDrawer.jsx";
 import BuyerLibrary from "../pages/Buyer/BuyerLibrary.jsx";
 import BuyerOrders from "../pages/Buyer/BuyerOrders.jsx";
+import SellerDashboard from "../pages/seller/SellerDashboard.jsx";
+import SellerInventory from "../pages/seller/SellerInventory.jsx";
+import SellerAnalytics from "../pages/seller/SellerAnalytics.jsx";
+import SellerSettings from "../pages/seller/SellerSettings.jsx";
+import AddNewBook from "../pages/seller/AddNewBook.jsx";
 import Unauthorized from "../pages/Unauthorized.jsx";
 
-// Components
+// Structural Guards
 import ProtectedRoute from "../components/ProtectedRoute.jsx";
 
-// Spinners
+// Loaders & Performance Optimizers
 import GlobalAppLoader from "../components/spinners/GlobalAppLoader.jsx";
-
-// Loader functions
-import { authLoader } from "../router-loader-functions/authLoader.js";
-import Profile from "../components/ProfileIcon.jsx";
-
-// // A simple generic loader to trigger the navigation state
-// const genericLoader = async () => {
-//   // If you want to see the spinner during testing, uncomment the line below:
-//   await new Promise((r) => setTimeout(r, 3000));
-//   return null;
-// };
+import {
+  authLoader,
+  shouldRevalidate,
+} from "../router-loader-functions/authLoader.js";
 
 const router = createBrowserRouter([
   {
     id: "root-wrapper",
-    element: <RootLayout />, // for guest routes
+    element: <RootLayout />,
     loader: authLoader,
-    hydrateFallbackElement: <GlobalAppLoader />,
+    shouldRevalidate: shouldRevalidate, // ⚡ PERFORMANCE: Prevents auth checking on standard page clicks
+    hydrateFallbackElement: <GlobalAppLoader />, // Handles server hydration/initial loader wait cleanly
     children: [
-      //  ------------------------------guest routes------------------------------
+      // ---------------------------- GUEST ROUTES ----------------------------
       {
         path: "/",
-
         element: <MainLayout />,
         id: "main-wrapper",
         children: [
-          { index: true, element: <Home /> },
-          {
-            path: "categories",
-            element: <Categories />,
-          },
+          { index: true, element: <RoleRedirector /> },
+          { path: "categories", element: <Categories /> },
           { path: "about", element: <About /> },
           { path: "contact", element: <Contact /> },
-          { path: "/book/details/:id", element: <BuyerBookDetails /> },
+          { path: "book/details/:id", element: <BuyerBookDetails /> },
         ],
       },
 
-      //  ------------------------------buyer routes------------------------------
+      // ---------------------------- BUYER ROUTES ----------------------------
       {
         path: "/buyer",
-        element: (
-          <ProtectedRoute allowedRoles={["buyer"]}>
-            <MainLayout />
-          </ProtectedRoute>
-        ), //for buyers only
+        element: <ProtectedRoute allowedRoles={["buyer"]} />, // ⚡ CLEANER: Acts as layout-level gate
         children: [
-          { path: "cart", element: <Cart /> },
-          { path: "wishlist", element: <Wishlist /> },
-          { path: "profile", element: <ProfileIcon /> },
-          { path: "my-library", element: <BuyerLibrary /> },
-          { path: "orders", element: <BuyerOrders /> },
-          { path: "sell", element: <StartSelling /> },
-          { path: "settings", element: <Settings /> },
+          {
+            element: <MainLayout />, // Reuses layout structure cleanly
+            children: [
+              { path: "cart", element: <Cart /> },
+              { path: "wishlist", element: <Wishlist /> },
+              { path: "profile", element: <ProfileIcon /> },
+              { path: "my-library", element: <BuyerLibrary /> },
+              { path: "orders", element: <BuyerOrders /> },
+              { path: "sell", element: <StartSelling /> },
+              { path: "settings", element: <Settings /> },
+            ],
+          },
         ],
       },
 
       {
         path: "book/checkout/:id",
         element: <ProtectedRoute allowedRoles={["buyer"]} />,
-        children: [{ path: "book/checkout/:id", element: <CheckoutDrawer /> }],
+        children: [{ path: "", element: <CheckoutDrawer /> }], // Fixed path nesting typo
       },
 
-      //  ------------------------------seller routes------------------------------
-
+      // ---------------------------- SELLER ROUTES ----------------------------
       {
         path: "/seller",
+        id: "seller-wrapper",
+        // ⚡ DATA STRATEGY: No loader here! React Query takes over inside components.
         element: (
           <ProtectedRoute allowedRoles={["seller"]}>
             <SellerLayout />
           </ProtectedRoute>
         ),
         children: [
-          { index: true, path: "dashboard", element: <SellerDashboard /> },
+          { index: true, element: <SellerDashboard /> },
+          { path: "dashboard", element: <SellerDashboard /> },
+          { path: "add-new-book", element: <AddNewBook /> },
+          { path: "inventory", element: <SellerInventory /> },
+          { path: "analytics", element: <SellerAnalytics /> },
+          { path: "settings", element: <SellerSettings /> },
         ],
       },
 
-      //  ------------------------------admin routes------------------------------
-
+      // ---------------------------- ADMIN ROUTES ----------------------------
       {
         path: "/admin",
         element: (
-          // <ProtectedRoute allowedRoles={["admin"]}>
-          <AdminLayout />
-          // </ProtectedRoute>
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <AdminLayout />
+          </ProtectedRoute>
         ),
         children: [
-          { index: true, path: "dashboard", element: <AdminDashboard /> },
+          { index: true, element: <AdminDashboard /> },
+          { path: "dashboard", element: <AdminDashboard /> },
         ],
       },
 
-      //  ------------------------------standalone routes------------------------------
-      // Auth Page
+      // ---------------------------- STANDALONE ROUTES ----------------------------
       { path: "/auth", element: <AuthPage /> },
-
-      // Unauthorized
       { path: "/unauthorized", element: <Unauthorized /> },
-
-      // Catch-all 404/Redirect
       { path: "*", element: <Navigate to="/" replace /> },
     ],
   },

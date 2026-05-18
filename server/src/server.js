@@ -15,8 +15,8 @@ const app = express();
 
 // --- Middleware ---
 app.use(cors(corsOptions));
-app.use(express.json()); // Essential for parsing JSON bodies
 app.use(cookieParser()); // For parsing cookies (e.g., refresh token)
+app.use(express.json()); // Essential for parsing JSON bodies
 
 // Execute DB Connection
 await connectDB();

@@ -1,88 +1,38 @@
 @import "tailwindcss";
 
 @theme {
-  /* Professional Bookstore Palette */
   --color-primary: #0f172a;
-  /* Slate 900 (Deep Navy) */
   --color-accent: #3b82f6;
-  /* Blue 500 */
   --color-background: #f8fafc;
-  /* Slate 50 */
   --color-success: #10b981;
   --color-danger: #ef4444;
 
-  /* Custom Animations for Loaders */
-  --animate-slow-spin: slow-spin 2s linear infinite;
-  --animate-progress-slide: progress-slide 1.5s infinite linear;
-  --animate-bubble-bounce: bounce 1s infinite;
-
-  @keyframes slow-spin {
-    from {
-      transform: rotate(0deg);
-    }
-
-    to {
-      transform: rotate(360deg);
-    }
-  }
-
-  @keyframes progress-slide {
-    0% {
-      transform: translateX(-100%);
-    }
-
-    100% {
-      transform: translateX(200%);
-    }
-  }
+  /* Add this specifically for your sidebar if you want to use your primary color */
+  --color-sidebar-bg: #0f172a;
 }
 
 @layer base {
 
+  /* This ensures the root containers take full height */
   html,
-  body {
-    @apply bg-[--color-background] text-[--color-primary] antialiased;
-    scrollbar-width: thin;
-    scrollbar-color: #cbd5e1 transparent;
-  }
-
-  /* Thin Scrollbar */
-  *::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  *::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  *::-webkit-scrollbar-thumb {
-    background-color: #cbd5e1;
-    border-radius: 20px;
-  }
-
-  *::-webkit-scrollbar-thumb:hover {
-    background-color: #94a3b8;
+  body,
+  #root {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    @apply bg-background text-primary antialiased;
   }
 }
 
 @layer utilities {
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
+
+  /* Ensure your custom scrollbar utility is actually available */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
   }
 
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    /* IE/Edge */
-    scrollbar-width: none;
-    /* Firefox */
-  }
-
-  /* Helper for staggered bubble delays in v4 */
-  .delay-150 {
-    animation-delay: -0.15s;
-  }
-
-  .delay-300 {
-    animation-delay: -0.3s;
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 20px;
   }
 }

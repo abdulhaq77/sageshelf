@@ -1,5 +1,6 @@
+// components/Navbar.jsx
 import React, { useState, useEffect, useRef } from "react";
-import { Link, NavLink, useLocation } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Search,
   Menu,
@@ -9,7 +10,7 @@ import {
   BookOpen,
   User as UserIcon,
 } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/public/AuthContext.jsx";
 import SharedSearchBar from "./SharedSearchBar";
 import ProfileIcon from "./ProfileIcon.jsx";
 import CheckoutDrawer from "../components/buyer/CheckoutDrawer.jsx";
@@ -26,8 +27,13 @@ export default function Navbar() {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Logic: Guest vs Authenticated Buyer
-  const isGuest = user.role === "guest" ? true : false;
+  // hooks
+  const { navigate } = useNavigate();
+
+  // 1. ROLE-BASED GUARD
+  // If user is Seller or Admin, we hide this Navbar entirely because they use the Dashboard Layout
+  const isManagementRole = user?.role === "seller" || user?.role === "admin";
+  const isGuest = user?.role === "guest" || !user;
 
   // Auto-close overlays on route change
   useEffect(() => {
@@ -36,11 +42,16 @@ export default function Navbar() {
     setIsSearchOpen(false);
   }, [location.pathname]);
 
+  // 2. BLOCK RENDERING FOR MANAGEMENT ROLES
+  // This prevents the Buyer navbar from showing up in the Seller/Admin dashboard areas
+  if (isManagementRole) return null;
+
   const navLinks = [
     { name: "Home", path: "/" },
     { name: "Categories", path: "/categories" },
     { name: "About", path: "/about" },
     { name: "Contact Us", path: "/contact-us" },
+    // Only show these to authenticated Buyers
     ...(!isGuest
       ? [
           { name: "My Library", path: "/buyer/my-library" },
@@ -48,6 +59,8 @@ export default function Navbar() {
         ]
       : []),
   ];
+
+  console.log("navbar user : ", user);
 
   return (
     <>
@@ -73,10 +86,9 @@ export default function Navbar() {
             </div>
           )}
 
-          {/* --- LEFT: Logo & Desktop Navigation --- */}
+          {/* --- LEFT: Logo & Nav --- */}
           <div className="flex items-center gap-8">
             <div className="flex items-center gap-3 shrink-0">
-              {/* Stack Menu Toggle (Mobile) */}
               <button
                 onClick={() => setIsMobileMenuOpen(true)}
                 className="lg:hidden p-2 text-slate-600 hover:bg-slate-50 rounded-xl transition-colors"
@@ -94,7 +106,6 @@ export default function Navbar() {
               </Link>
             </div>
 
-            {/* Desktop Links */}
             <div className="hidden lg:flex items-center gap-8">
               {navLinks.map((link) => (
                 <NavLink
@@ -116,7 +127,6 @@ export default function Navbar() {
 
           {/* --- RIGHT: Actions --- */}
           <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-            {/* Desktop Search */}
             <div className="hidden lg:block w-48 xl:w-64">
               <SharedSearchBar
                 value={searchQuery}
@@ -125,7 +135,6 @@ export default function Navbar() {
               />
             </div>
 
-            {/* Mobile Search Toggle */}
             <button
               onClick={() => setIsSearchOpen(true)}
               className="lg:hidden p-2 text-slate-600"
@@ -133,7 +142,6 @@ export default function Navbar() {
               <Search size={20} />
             </button>
 
-            {/* Interaction Group */}
             <div className="flex items-center gap-1 border-l pl-3 border-slate-100">
               <Link
                 to={isGuest ? "/auth" : "/buyer/wishlist"}
@@ -141,19 +149,19 @@ export default function Navbar() {
               >
                 <Heart size={20} />
               </Link>
-              <Link
-                to={isGuest ? "/auth" : "/buyer/cart"}
-                onClick={() => setIsCheckoutOpen(true)}
+              <button
+                onClick={() =>
+                  isGuest ? navigate("/auth") : setIsCheckoutOpen(true)
+                }
                 className="p-2 text-slate-400 hover:text-[#a3b18a] relative"
               >
                 <ShoppingCart size={20} />
                 <span className="absolute top-1 right-1 bg-[#a3b18a] text-white text-[7px] font-bold px-1.5 py-0.5 rounded-full ring-2 ring-white">
                   0
                 </span>
-              </Link>
+              </button>
             </div>
 
-            {/* AUTH SECTION: Join vs Profile */}
             <div className="relative ml-2" ref={profileRef}>
               {isGuest ? (
                 <Link
@@ -175,77 +183,43 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* --- DRAWERS & MODALS --- */}
+      {/* --- DRAWERS --- */}
       <CheckoutDrawer
         isOpen={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
       />
 
-      {/* MOBILE STACK MENU (Slide-out Navigation) */}
+      {/* MOBILE STACK MENU */}
       <div
-        className={`fixed inset-0 z-100 lg:hidden transition-opacity duration-300 ${
-          isMobileMenuOpen
-            ? "opacity-100 pointer-events-auto"
-            : "opacity-0 pointer-events-none"
-        }`}
+        className={`fixed inset-0 z-100 lg:hidden transition-opacity duration-300 ${isMobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
       >
-        {/* Backdrop */}
         <div
           className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
           onClick={() => setIsMobileMenuOpen(false)}
         />
-
-        {/* Drawer Content */}
         <div
-          className={`absolute inset-y-0 left-0 w-72 bg-white shadow-2xl transition-transform duration-300 ease-out transform ${
-            isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+          className={`absolute inset-y-0 left-0 w-72 bg-white shadow-2xl transition-transform duration-300 ease-out transform ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}
         >
-          <div className="flex flex-col h-full">
-            {/* Header */}
-            <div className="p-6 flex justify-between items-center border-b border-slate-50">
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
-                Navigation
+          <div className="flex flex-col h-full p-6">
+            <div className="flex justify-between items-center border-b pb-4 mb-4">
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                Menu
               </span>
-              <button
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="p-2 text-slate-400 hover:bg-slate-50 rounded-full"
-              >
+              <button onClick={() => setIsMobileMenuOpen(false)}>
                 <X size={20} />
               </button>
             </div>
-
-            {/* Links */}
-            <div className="flex-1 p-6 flex flex-col gap-2">
+            <div className="flex flex-col gap-2">
               {navLinks.map((link) => (
                 <NavLink
                   key={link.name}
                   to={link.path}
-                  className={({ isActive }) =>
-                    `flex items-center gap-4 p-4 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all ${
-                      isActive
-                        ? "bg-[#a3b18a]/10 text-[#a3b18a]"
-                        : "text-slate-600 hover:bg-slate-50"
-                    }`
-                  }
+                  className="p-4 text-[11px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 rounded-2xl"
                 >
                   {link.name}
                 </NavLink>
               ))}
             </div>
-
-            {/* Footer / Auth Call to Action in Menu */}
-            {isGuest && (
-              <div className="p-6 mt-auto">
-                <Link
-                  to="/auth"
-                  className="w-full flex items-center justify-center gap-3 bg-slate-900 text-white p-4 rounded-2xl text-[10px] font-black uppercase tracking-widest"
-                >
-                  <UserIcon size={14} />
-                  Get Started
-                </Link>
-              </div>
-            )}
           </div>
         </div>
       </div>

@@ -1,6 +1,21 @@
-import apiClient from "./api.config";
+import apiClient from "../config/api.config.js";
 
-// --- Auth Endpoints ---
+// ------------------------------ Auth Endpoints ------------------------------
+
+// Authenticate me - get current user profile
+export const fetchCurrentUser = async () => {
+  console.log("Fetching current user profile...");
+  try {
+    const response = await apiClient.get("/auth/me");
+    console.log("Fetched Current User response:", response);
+    return response.data.user;
+  } catch (error) {
+    console.error("Error fetching user profile:", error.response);
+    return error.response?.data.user;
+  }
+};
+
+// login alreaday registered user
 export const loginUser = async (credentials) => {
   console.log("4. Attempting Network Call with:", credentials);
   try {
@@ -12,14 +27,26 @@ export const loginUser = async (credentials) => {
   }
 };
 
+// register a new user
 export const registerUser = async (registrationData) =>
   await apiClient.post("/auth/register", registrationData);
 
-export const getAccessToken = async () => await apiClient.get("/auth/refresh");
+// refresh token
+export const getAccessToken = async () => {
+  try {
+    const response = await apiClient.get("/auth/refresh");
+    return response.data;
+  } catch (error) {
+    console.error("REFRESH TOKEN ERROR:", error);
+    throw error;
+  }
+};
 
+// logout user
 export const logoutUser = async () => {
   try {
     const response = await apiClient.post("/auth/logout", {});
+    console.log("logout resp : ", response.data);
     return response.data;
   } catch (error) {
     console.error("NETWORK ERROR:", error);
@@ -27,24 +54,23 @@ export const logoutUser = async () => {
   }
 };
 
-// --- User Endpoints ---
-export const getUserProfile = async (accessToken) => {
-  // Pass the token in the Authorization header
-  return await apiClient.get("/user/profile", {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
+// ------------------------------ User Endpoints ------------------------------
+
+// ------------------------------ Seller Endpoints ------------------------------
+
+// upload new book
+export const uploadAsset = async (BookData) => {
+  console.log("Uploading Book Data:", BookData);
+  return await apiClient.post("/seller/upload/new-book", BookData);
 };
 
-// --- Product/Asset Endpoints ---
-export const getAssets = (params) => apiClient.get("/assets", { params });
-export const getAssetById = (id) => apiClient.get(`/assets/${id}`);
-
-// --- Seller Endpoints ---
-export const uploadAsset = (formData) =>
-  apiClient.post("/seller/upload", formData, {
-    headers: { "Content-Type": "multipart/form-data" }, // For file uploads
-  });
-
-// --- User/Profile Endpoints ---
-export const getProfile = () => apiClient.get("/user/profile");
-export const updateProfile = (data) => apiClient.put("/user/profile", data);
+// get seller inventory
+export const getSellerInventory = async () => {
+  try {
+    const response = await apiClient.get("/seller/inventory");
+    return response.data;
+  } catch (error) {
+    console.error("NETWORK ERROR:", error);
+    throw error;
+  }
+};

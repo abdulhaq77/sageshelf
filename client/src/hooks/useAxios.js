@@ -1,6 +1,7 @@
 import { useEffect } from "react";
-import apiClient from "../api/api.config";
-import { useAuth } from "../context/AuthContext";
+import apiClient from "../config/api.config";
+import { AuthProvider } from "../context/public/AuthContext";
+import { useAuth } from "../context/public/AuthContext";
 
 export const useAxios = () => {
   const { accessToken, setAccessToken, logout } = useAuth();

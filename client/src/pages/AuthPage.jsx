@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext.jsx";
+import { useAuth } from "../context/public/AuthContext.jsx";
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -25,7 +25,7 @@ export default function AuthPage() {
   const [showPass, setShowPass] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
   const navigate = useNavigate();
-  const { handleLogin, handleSignUp, setUser, setAccessToken } = useAuth();
+  const { handleLogin, handleSignUp, setUser } = useAuth();
 
   const {
     register,
@@ -47,11 +47,9 @@ export default function AuthPage() {
   const watchedFields = watch();
 
   const onSubmit = async (formData) => {
-    console.log("🚀 Submit function triggered!");
     try {
       // Check if we are logging in or registering
       if (isLogin) {
-        console.log("📡 Sending Login Request...");
         // --- LOGIN LOGIC ---
         // We only need email and password for login
         const loginCredentials = {
@@ -61,26 +59,22 @@ export default function AuthPage() {
 
         console.log("login 1: ", loginCredentials);
         // calling login API
-        const { message, user, accessToken } =
-          await handleLogin(loginCredentials);
+        const { message, user } = await handleLogin(loginCredentials);
 
-        console.log("login suucess : ", user, message, accessToken);
+        console.log("auuth page login : ", message, user);
 
         toast.success(message);
         // Redirect based on userRole
         if (user.role === "seller") {
           setUser(user);
-          setAccessToken(accessToken);
           // Redirect to seller dashboard
           navigate("/seller/dashboard");
         } else if (user.role === "admin") {
           setUser(user);
-          setAccessToken(accessToken);
           // Redirect to admin dashboard
           navigate("/admin/dashboard");
         } else {
           setUser(user);
-          setAccessToken(accessToken);
           // Redirect to buyer dashboard
           navigate("/buyer/dashboard");
         }

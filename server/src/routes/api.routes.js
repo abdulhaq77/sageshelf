@@ -1,5 +1,6 @@
 import express from "express";
 import authRoutes from "./auth.routes.js";
+import sellerRoutes from "./seller.routes.js";
 
 const router = express.Router();
 
@@ -7,7 +8,7 @@ const router = express.Router();
 router.use("/auth", authRoutes);
 
 // seller routes
-// router.use("/seller", require("./seller.routes"));
+router.use("/seller", sellerRoutes);
 
 // user routes
 // router.use("/user", require("./user.routes"));
