@@ -6,6 +6,7 @@ import LoadingState from "../components/spinners/LoadingState.jsx";
 
 // UI Context Creation
 const UIContext = createContext({
+  // for bubbke spinner
   globalLoading: {
     isLoading: Boolean,
     message: String,
@@ -17,12 +18,13 @@ const UIContext = createContext({
 
 // Provider Component
 export function UIProvider({ children }) {
+  // global bubble spinner state
   const [globalLoading, setGlobalLoading] = useState({
     isLoading: false,
     message: "",
   });
 
-  // function for showing mini bubble spinner
+  // function for showing bubble spinner
   const showBubbleLoader = (
     message = "Wait while process is being completed...",
   ) =>
@@ -31,7 +33,7 @@ export function UIProvider({ children }) {
       message: message,
     });
 
-  // function for hidding mini bubble spinner
+  // function for hidding bubble spinner
   const hideBubbleLoader = () =>
     setGlobalLoading({
       isLoading: false,

@@ -17,9 +17,9 @@ import {
 } from "lucide-react";
 import { uploadFile } from "../../services/uploadService";
 import { useAuth } from "../../context/public/AuthContext.jsx";
-import { uploadAsset } from "../../api/endpoints";
 import { bookSchema } from "../../schemas/book.validation.js";
 import { toast } from "react-toastify";
+import { useSeller } from "../../context/SellerContext.jsx";
 
 const categoriesList = [
   "Select Category",
@@ -47,9 +47,8 @@ const categoriesList = [
 export default function AddNewBook() {
   // hooks
   const { user } = useAuth();
+  const { handleBookUpload } = useSeller();
   const navigate = useNavigate();
-
-  console.log("Current User in AddNewBook:", user);
 
   // States for File binaries, Cloud URLs, and Local Previews
   const [files, setFiles] = useState({ cover: null, asset: null });
@@ -126,7 +125,7 @@ export default function AddNewBook() {
     }
 
     try {
-      const finalPayload = {
+      const finalBookPayload = {
         ...data,
         price: parseFloat(data.price),
         coverUrl: links.coverUrl,
@@ -135,19 +134,7 @@ export default function AddNewBook() {
         createdAt: new Date().toISOString(),
       };
 
-      console.log("Final Payload for Backend:", finalPayload);
-
-      const response = await uploadAsset(finalPayload);
-
-      console.log("Backend Response:", response);
-      if (response.data.success) {
-        toast.success(response.data.message);
-      }
-
-      // update book state
-
-      // navigate to inventory
-      navigate("/seller/inventory");
+      await handleBookUpload(finalBookPayload);
     } catch (error) {
       console.error("Backend Error:", error);
       toast.error(error.response?.data?.message);
