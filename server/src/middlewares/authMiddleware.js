@@ -1,4 +1,5 @@
-import jwt from "jsonwebtoken";
+import jwt, { decode } from "jsonwebtoken";
+import User from "../models/User.model.js";
 
 // verify the access token
 export const verifyToken = async (req, res, next) => {
@@ -17,11 +18,9 @@ export const verifyToken = async (req, res, next) => {
       process.env.JWT_ACCESS_SECRET,
     );
 
-    console.log(
-      "✅ Access token verified successfully. Decoded payload:",
-      decoded,
-    );
-    req.userId = decoded.id || decoded._id; // attach decoded user info to request object for downstream use
+    const foundUser = await User.findById(decoded.id.id);
+
+    req.user = foundUser; // attach decoded user info to request object for downstream use
     next(); // proceed to the next middleware or route handler
   } catch (error) {
     console.error("❌ Error occurred while verifying access token:", error);
@@ -39,8 +38,9 @@ export const verifyToken = async (req, res, next) => {
 // role-based access control middleware
 export const authorizeRoles = (...allowedRoles) => {
   return (req, res, next) => {
-    const userRoles = req.user.roles || [];
-    const hasAccess = userRoles.some((role) => allowedRoles.includes(role));
+    const userRole = req.user.role;
+
+    const hasAccess = allowedRoles.includes(userRole);
 
     if (!hasAccess) {
       return res.status(403).json({ message: "Insufficient permissions" });

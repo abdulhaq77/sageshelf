@@ -29,6 +29,10 @@ import SellerSettings from "../pages/seller/SellerSettings.jsx";
 import AddNewBook from "../pages/seller/AddNewBook.jsx";
 import Unauthorized from "../pages/Unauthorized.jsx";
 
+// contexts
+import { SellerProvider } from "../context/SellerContext.jsx";
+import { PublicBookProvider } from "../context/public/PublicBookContext.jsx";
+
 // Structural Guards
 import ProtectedRoute from "../components/ProtectedRoute.jsx";
 
@@ -50,13 +54,17 @@ const router = createBrowserRouter([
       // ---------------------------- GUEST ROUTES ----------------------------
       {
         path: "/",
-        element: <MainLayout />,
+        element: (
+          <PublicBookProvider>
+            <MainLayout />,
+          </PublicBookProvider>
+        ),
         id: "main-wrapper",
         children: [
-          { index: true, element: <RoleRedirector /> },
+          { index: true, element: <RoleRedirector /> }, //Acts as a role redirector, checks role and navigate user to desired path based on role otherwise return Home page
           { path: "categories", element: <Categories /> },
           { path: "about", element: <About /> },
-          { path: "contact", element: <Contact /> },
+          { path: "contact-us", element: <Contact /> },
           { path: "book/details/:id", element: <BuyerBookDetails /> },
         ],
       },
@@ -91,10 +99,11 @@ const router = createBrowserRouter([
       {
         path: "/seller",
         id: "seller-wrapper",
-        // ⚡ DATA STRATEGY: No loader here! React Query takes over inside components.
         element: (
           <ProtectedRoute allowedRoles={["seller"]}>
-            <SellerLayout />
+            <SellerProvider>
+              <SellerLayout />
+            </SellerProvider>
           </ProtectedRoute>
         ),
         children: [

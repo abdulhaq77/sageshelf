@@ -1,112 +1,69 @@
 import React from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
-import BuyerBookCard from "../components/buyer/BuyerBookCard";
+import FeaturedSection from "../components/FeaturedSection.jsx";
 
 export default function Home() {
-  const featuredBooks = [
-    {
-      id: 1,
-      title: "Modern React Patterns",
-      category: "Programming",
-      author: "Dev Archive",
-      price: "PKR 1,500",
-      discountPrice: "PKR 1,200",
-      rating: 5,
-      reviews: 45,
-      img: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=400",
-    },
-    {
-      id: 2,
-      title: "The Art of C++",
-      category: "Programming",
-      author: "Code Master",
-      price: "PKR 2,200",
-      rating: 4,
-      reviews: 28,
-      img: "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?q=80&w=400",
-    },
-    {
-      id: 3,
-      title: "Civil Law Basics",
-      category: "Law",
-      author: "Advocate Khan",
-      price: "PKR 3,500",
-      discountPrice: "PKR 2,900",
-      rating: 4.5,
-      reviews: 120,
-      img: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=400",
-    },
-    {
-      id: 4,
-      title: "UI Design 2026",
-      category: "Design",
-      author: "Pixel Studio",
-      price: "PKR 1,200",
-      rating: 5,
-      reviews: 92,
-      img: "https://images.unsplash.com/photo-1586717791821-3f44a563dc4c?q=80&w=400",
-    },
-  ];
-
   return (
-    <div className="flex flex-col w-full pb-20">
-      {/* --- HERO SECTION --- */}
-      <section className="relative w-full bg-primary pt-20 pb-32 px-6 overflow-hidden">
-        <div className="absolute top-0 right-0 w-1/3 h-full bg-[#a3b18a]/10 blur-[120px] rounded-full -translate-y-1/2"></div>
+    <div className="flex flex-col w-full pb-20 bg-white">
+      {/* --- PREMIUM DARK METRIC HERO SECTION --- */}
+      <section className="relative w-full bg-slate-950 pt-20 pb-32 px-6 overflow-hidden rounded-b-[2.5rem] lg:rounded-b-[4rem] shadow-xl shadow-slate-950/10">
+        {/* Neon Ambient Vector Canvas Orbs */}
+        <div className="absolute top-0 right-1/4 w-96 h-96 bg-emerald-500/4 blur-[130px] rounded-full -translate-y-1/2 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-teal-500/3 blur-[100px] rounded-full translate-y-1/4 pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto relative z-10 text-center lg:text-left flex flex-col lg:flex-row items-center gap-12">
-          <div className="lg:w-1/2">
-            <span className="text-[#a3b18a] font-black text-[10px] tracking-[0.3em] uppercase mb-4 block">
-              Archive Hub
-            </span>
-            <h1 className="text-5xl lg:text-7xl font-extrabold text-white leading-[1.05] tracking-tighter mb-6 italic">
+        <div className="max-w-7xl mx-auto relative z-10 text-center lg:text-left flex flex-col lg:flex-row items-center gap-16">
+          <div className="lg:w-1/2 space-y-6">
+            {/* SaaS Micro-Badge */}
+            <div className="inline-flex items-center gap-1.5 bg-slate-900 border border-slate-800 px-3 py-1 rounded-full self-center lg:self-start">
+              <Sparkles size={10} className="text-emerald-400 animate-pulse" />
+              <span className="text-emerald-400 font-black text-[9px] tracking-[0.25em] uppercase font-mono">
+                Knowledge Engineering Hub
+              </span>
+            </div>
+
+            <h1 className="text-5xl lg:text-7xl font-black text-white leading-[1.05] tracking-tight">
               Unlock the <br />{" "}
-              <span className="text-[#a3b18a]">Knowledge</span> of Ages.
+              <span className="bg-linear-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
+                Knowledge
+              </span>{" "}
+              of Ages.
             </h1>
-            <p className="text-slate-400 text-lg mb-10 max-w-lg leading-relaxed">
-              Access a premium curated library of digital books and technical
-              guides.
+
+            <p className="text-slate-400 text-base max-w-lg leading-relaxed font-medium">
+              Access a premium curated library of verified digital engineering
+              resources, elite law codex briefs, and specialized technical
+              blueprints.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
               <Link
                 to="/categories"
-                className="bg-success text-white px-8 py-4 rounded-2xl font-black text-xs tracking-widest uppercase hover:bg-[#059669] transition-all flex items-center justify-center gap-2 group"
+                className="bg-white text-slate-950 px-8 py-4 rounded-2xl font-black text-xs tracking-widest uppercase hover:bg-slate-100 active:scale-[0.99] transition-all flex items-center justify-center gap-2 group shadow-xl shadow-white/5 cursor-pointer"
               >
                 Explore Categories{" "}
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight
+                  className="w-4 h-4 text-slate-950 group-hover:translate-x-1 transition-transform"
+                  strokeWidth={2.5}
+                />
               </Link>
             </div>
           </div>
-          <div className="lg:w-1/2">
+
+          {/* Framed Graphic Container Mock */}
+          <div className="lg:w-1/2 relative group">
+            <div className="absolute inset-0 bg-linear-to-tr from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-[40px] blur-xl pointer-events-none" />
             <img
               src="https://images.unsplash.com/photo-1481627564025-3c8b5c146d77?q=80&w=800"
-              className="rounded-[40px] shadow-2xl border border-white/10 object-cover w-full h-100 lg:h-125"
-              alt="Knowledge"
+              className="rounded-[40px] shadow-2xl border border-slate-800/80 object-cover w-full h-100 lg:h-125 transition-all duration-300 group-hover:border-slate-700"
+              alt="Knowledge Grid"
             />
           </div>
         </div>
       </section>
 
-      {/* --- FEATURED BOOKS --- */}
-      <section className="max-w-7xl mx-auto px-6 mt-20 w-full">
-        <div className="flex justify-between items-end mb-10">
-          <h2 className="text-3xl font-black tracking-tighter text-slate-900">
-            Featured Releases
-          </h2>
-          <Link
-            to="/shop"
-            className="text-xs font-black text-[#a3b18a] uppercase tracking-widest hover:underline"
-          >
-            View All
-          </Link>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {featuredBooks.map((book) => (
-            <BuyerBookCard key={book.id} book={book} />
-          ))}
-        </div>
-      </section>
+      {/* --- FEATURED INVENTORY SECTION --- */}
+      <FeaturedSection />
     </div>
   );
 }

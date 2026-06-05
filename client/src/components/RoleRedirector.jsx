@@ -8,8 +8,6 @@ export default function RoleRedirector() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  console.log("RoleRedirector: Current user role:", user?.role);
-
   useEffect(() => {
     // If the user is a Seller or Admin, they shouldn't be on the main landing page
     if (user?.role === "seller") {

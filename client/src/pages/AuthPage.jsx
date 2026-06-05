@@ -40,8 +40,6 @@ export default function AuthPage() {
     defaultValues: { role: "buyer" },
   });
 
-  console.log("Validation Errors : ", errors);
-
   // This watches all fields to trigger the "X" button visibility
   // eslint-disable-next-line react-hooks/incompatible-library
   const watchedFields = watch();
@@ -57,11 +55,8 @@ export default function AuthPage() {
           password: formData.password,
         };
 
-        console.log("login 1: ", loginCredentials);
         // calling login API
         const { message, user } = await handleLogin(loginCredentials);
-
-        console.log("auuth page login : ", message, user);
 
         toast.success(message);
         // Redirect based on userRole
@@ -94,7 +89,6 @@ export default function AuthPage() {
         if (userRole === "seller") {
           registrationData.shopName = formData.shopName;
         }
-        console.log("test ... ", registrationData);
 
         // calling register API
         const { message } = await handleSignUp(registrationData);
@@ -380,7 +374,6 @@ export default function AuthPage() {
                   disabled={isSubmitting}
                   className="w-full flex items-center justify-center gap-3 bg-success hover:bg-[#059669] disabled:bg-slate-300 disabled:cursor-not-allowed text-white py-4 rounded-xl font-black text-xs tracking-[0.2em] uppercase transition-all shadow-lg active:scale-[0.95]"
                 >
-                  {console.log("testing isSubmit : ", isSubmitting)}
                   {isSubmitting ? (
                     <>
                       <Loader2 className="w-5 h-5 animate-spin" />

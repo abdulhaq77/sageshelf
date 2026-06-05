@@ -1,15 +1,6 @@
-// components/Navbar.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
-import {
-  Search,
-  Menu,
-  X,
-  Heart,
-  ShoppingCart,
-  BookOpen,
-  User as UserIcon,
-} from "lucide-react";
+import { Search, Menu, X, Heart, ShoppingCart, BookOpen } from "lucide-react";
 import { useAuth } from "../context/public/AuthContext.jsx";
 import SharedSearchBar from "./SharedSearchBar";
 import ProfileIcon from "./ProfileIcon.jsx";
@@ -27,31 +18,38 @@ export default function Navbar() {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // hooks
-  const { navigate } = useNavigate();
+  const navigate = useNavigate();
 
-  // 1. ROLE-BASED GUARD
-  // If user is Seller or Admin, we hide this Navbar entirely because they use the Dashboard Layout
+  // ROLE-BASED GUARD
   const isManagementRole = user?.role === "seller" || user?.role === "admin";
   const isGuest = user?.role === "guest" || !user;
 
   // Auto-close overlays on route change
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMobileMenuOpen(false);
     setIsProfileOpen(false);
     setIsSearchOpen(false);
   }, [location.pathname]);
 
-  // 2. BLOCK RENDERING FOR MANAGEMENT ROLES
-  // This prevents the Buyer navbar from showing up in the Seller/Admin dashboard areas
   if (isManagementRole) return null;
+
+  // ACTION HANDLER: What happens when a user submits a search string or taps an AI keyword dropdown
+  const handleSearchExecute = (queryText) => {
+    if (!queryText?.trim()) return;
+
+    console.log("navbar search query : ", queryText);
+
+    // Redirects buyer directly to your main shop routing path with query strings appended
+    navigate(`/categories?search=${encodeURIComponent(queryText.trim())}`);
+    setIsSearchOpen(false); // Close mobile view overlay if active
+  };
 
   const navLinks = [
     { name: "Home", path: "/" },
     { name: "Categories", path: "/categories" },
     { name: "About", path: "/about" },
     { name: "Contact Us", path: "/contact-us" },
-    // Only show these to authenticated Buyers
     ...(!isGuest
       ? [
           { name: "My Library", path: "/buyer/my-library" },
@@ -60,26 +58,25 @@ export default function Navbar() {
       : []),
   ];
 
-  console.log("navbar user : ", user);
-
   return (
     <>
-      <nav className="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-md border-b border-slate-100 h-20">
+      {/* PREMIUM GLASSMORPHISM NAVIGATION BACKDROP */}
+      <nav className="sticky top-0 z-50 w-full bg-slate-950/85 backdrop-blur-xl border-b border-slate-900 h-20 shadow-xl shadow-slate-950/20">
         <div className="max-w-7xl mx-auto h-full px-6 flex items-center justify-between relative">
           {/* --- MOBILE SEARCH OVERLAY --- */}
           {isSearchOpen && (
-            <div className="absolute inset-0 z-60 bg-white px-4 flex items-center gap-2 lg:hidden animate-in fade-in slide-in-from-top duration-200">
+            <div className="absolute inset-0 z-60 bg-slate-950 px-4 flex items-center gap-2 lg:hidden animate-in fade-in slide-in-from-top duration-200 border-b border-slate-900">
               <div className="flex-1">
+                {/* Connected Upgraded AI Search Bar for Mobile view screens */}
                 <SharedSearchBar
-                  value={searchQuery}
-                  onChange={setSearchQuery}
-                  onClear={() => setSearchQuery("")}
+                  onSuggestionSelect={handleSearchExecute}
+                  placeholder="Ask AI for books..."
                   autoFocus
                 />
               </div>
               <button
                 onClick={() => setIsSearchOpen(false)}
-                className="p-2 text-slate-500"
+                className="p-2 text-slate-400 hover:text-white transition-colors cursor-pointer"
               >
                 <X size={20} />
               </button>
@@ -91,17 +88,21 @@ export default function Navbar() {
             <div className="flex items-center gap-3 shrink-0">
               <button
                 onClick={() => setIsMobileMenuOpen(true)}
-                className="lg:hidden p-2 text-slate-600 hover:bg-slate-50 rounded-xl transition-colors"
+                className="lg:hidden p-2 text-slate-400 hover:text-white hover:bg-slate-900 rounded-xl transition-all cursor-pointer border border-transparent hover:border-slate-800"
               >
                 <Menu size={22} />
               </button>
 
-              <Link to="/" className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-[#a3b18a] rounded-lg flex items-center justify-center text-white hidden sm:flex">
-                  <BookOpen size={18} />
+              <Link to="/" className="flex items-center gap-2.5 group">
+                {/* Clean Neon SaaS Branding Accent Box */}
+                <div className="w-8 h-8 bg-linear-to-br from-emerald-400 to-teal-500 rounded-lg flex items-center justify-center text-slate-950 hidden sm:flex shadow-lg shadow-emerald-500/10 group-hover:scale-105 transition-transform">
+                  <BookOpen size={16} strokeWidth={2.5} />
                 </div>
-                <span className="text-base font-black text-slate-900 tracking-tighter uppercase italic">
-                  SAGE<span className="text-[#a3b18a]">SHELF</span>
+                <span className="text-base font-black text-white tracking-wider font-mono">
+                  SAGE
+                  <span className="bg-linear-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
+                    SHELF
+                  </span>
                 </span>
               </Link>
             </div>
@@ -112,10 +113,10 @@ export default function Navbar() {
                   key={link.name}
                   to={link.path}
                   className={({ isActive }) =>
-                    `text-[10px] font-black uppercase tracking-[0.2em] transition-all ${
+                    `text-[10px] font-black uppercase tracking-[0.2em] font-mono transition-all duration-150 relative py-1 ${
                       isActive
-                        ? "text-[#a3b18a]"
-                        : "text-slate-400 hover:text-slate-900"
+                        ? "text-emerald-400 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-emerald-400 after:rounded-full"
+                        : "text-slate-400 hover:text-slate-200"
                     }`
                   }
                 >
@@ -127,25 +128,26 @@ export default function Navbar() {
 
           {/* --- RIGHT: Actions --- */}
           <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-            <div className="hidden lg:block w-48 xl:w-64">
+            {/*  DESKTOP SEARCH BAR ROUTE HOOK */}
+            <div className="hidden lg:block w-64 xl:w-80">
+              {/* Connected Upgraded AI Search Bar with custom triggers */}
               <SharedSearchBar
-                value={searchQuery}
-                onChange={setSearchQuery}
-                onClear={() => setSearchQuery("")}
+                onSuggestionSelect={handleSearchExecute}
+                placeholder="Try: 'something sweet and romantic'..."
               />
             </div>
 
             <button
               onClick={() => setIsSearchOpen(true)}
-              className="lg:hidden p-2 text-slate-600"
+              className="lg:hidden p-2 text-slate-400 hover:text-white transition-colors cursor-pointer"
             >
               <Search size={20} />
             </button>
 
-            <div className="flex items-center gap-1 border-l pl-3 border-slate-100">
+            <div className="flex items-center gap-1 border-l pl-3 border-slate-900">
               <Link
                 to={isGuest ? "/auth" : "/buyer/wishlist"}
-                className="p-2 text-slate-400 hover:text-red-500 transition-colors"
+                className="p-2 text-slate-400 hover:text-rose-400 transition-colors"
               >
                 <Heart size={20} />
               </Link>
@@ -153,10 +155,10 @@ export default function Navbar() {
                 onClick={() =>
                   isGuest ? navigate("/auth") : setIsCheckoutOpen(true)
                 }
-                className="p-2 text-slate-400 hover:text-[#a3b18a] relative"
+                className="p-2 text-slate-400 hover:text-emerald-400 relative cursor-pointer"
               >
                 <ShoppingCart size={20} />
-                <span className="absolute top-1 right-1 bg-[#a3b18a] text-white text-[7px] font-bold px-1.5 py-0.5 rounded-full ring-2 ring-white">
+                <span className="absolute top-1 right-1 bg-emerald-500 text-slate-950 text-[7px] font-black px-1.5 py-0.5 rounded-full ring-2 ring-slate-950 shadow-md">
                   0
                 </span>
               </button>
@@ -166,7 +168,7 @@ export default function Navbar() {
               {isGuest ? (
                 <Link
                   to="/auth"
-                  className="bg-slate-900 text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10"
+                  className="bg-white hover:bg-slate-100 text-slate-950 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest font-mono transition-all shadow-md shadow-white/5 active:scale-[0.98]"
                 >
                   Join
                 </Link>
@@ -194,27 +196,30 @@ export default function Navbar() {
         className={`fixed inset-0 z-100 lg:hidden transition-opacity duration-300 ${isMobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
       >
         <div
-          className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+          className="absolute inset-0 bg-slate-950/60 backdrop-blur-md"
           onClick={() => setIsMobileMenuOpen(false)}
         />
         <div
-          className={`absolute inset-y-0 left-0 w-72 bg-white shadow-2xl transition-transform duration-300 ease-out transform ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}
+          className={`absolute inset-y-0 left-0 w-72 bg-slate-950 border-r border-slate-900 shadow-2xl transition-transform duration-300 ease-out transform ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}
         >
           <div className="flex flex-col h-full p-6">
-            <div className="flex justify-between items-center border-b pb-4 mb-4">
-              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                Menu
+            <div className="flex justify-between items-center border-b border-slate-900 pb-4 mb-4">
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 font-mono">
+                Menu Navigation
               </span>
-              <button onClick={() => setIsMobileMenuOpen(false)}>
+              <button
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-slate-400 hover:text-white cursor-pointer"
+              >
                 <X size={20} />
               </button>
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1.5">
               {navLinks.map((link) => (
                 <NavLink
                   key={link.name}
                   to={link.path}
-                  className="p-4 text-[11px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 rounded-2xl"
+                  className="p-4 text-[11px] font-black uppercase tracking-widest text-slate-400 hover:text-white hover:bg-slate-900 rounded-xl transition-all font-mono border border-transparent hover:border-slate-900"
                 >
                   {link.name}
                 </NavLink>

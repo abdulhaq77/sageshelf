@@ -1,32 +1,43 @@
 import React from "react";
+import { Loader2 } from "lucide-react";
 
-export default function MiniLoader({ message = "", size = "md" }) {
-  // Mapping sizes for flexibility
-  const sizeClasses = {
-    sm: "w-4 h-4 border-2",
-    md: "w-8 h-8 border-3",
-    lg: "w-12 h-12 border-4",
-  };
-
+export default function MiniLoader({
+  message,
+  subMessage,
+  minHeight = "min-h-[250px]",
+}) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 p-4 w-full h-full min-h-25">
-      <div className="relative">
-        {/* Outer Ring */}
-        <div
-          className={`${sizeClasses[size]} border-slate-100 rounded-full animate-pulse`}
-        ></div>
+    /* @container turns this div into a context anchor. 
+       All '@' prefixes below change size based on the PARENT element, not the screen size! */
+    <div
+      className={`w-full @container flex flex-col items-center justify-center p-4 @xs:p-6 @md:p-10 ${minHeight} text-center animate-in fade-in zoom-in-95 duration-300`}
+    >
+      {/* Premium SaaS Loader Core */}
+      <div className="relative flex items-center justify-center mb-3 @xs:mb-4">
+        {/* Modern ambient glow backdrop */}
+        <div className="absolute w-12 h-12 bg-slate-100/80 rounded-full blur-xl animate-pulse" />
 
-        {/* Spinning Accent Ring */}
-        <div
-          className={`absolute top-0 left-0 ${sizeClasses[size]} border-t-accent border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin`}
-        ></div>
+        {/* Track Ring */}
+        <div className="absolute w-10 h-10 border-[3px] border-slate-100/80 rounded-full" />
+
+        {/* High-contrast Active Spinner */}
+        <Loader2
+          size={36}
+          className="text-slate-900 animate-spin relative z-10 stroke-[2.25] @xs:size-10"
+        />
       </div>
 
-      {message && (
-        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 animate-pulse">
+      {/* Micro-Typography Text Stack */}
+      <div className="space-y-1 max-w-xs @xs:max-w-md px-2">
+        <h4 className="text-[10px] @xs:text-[11px] @md:text-xs font-black uppercase tracking-[0.2em] text-slate-800 antialiased">
           {message}
-        </p>
-      )}
+        </h4>
+        {subMessage && (
+          <p className="text-[9px] @xs:text-[10px] @md:text-[11px] font-medium text-slate-400/80 tracking-normal">
+            {subMessage}
+          </p>
+        )}
+      </div>
     </div>
   );
 }

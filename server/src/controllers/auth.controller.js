@@ -248,12 +248,8 @@ export const logout = async (req, res) => {
 
 // get user profile
 export const getProfile = async (req, res) => {
-  console.log("Fetching profile for user ID:", req.userId);
   try {
-    const { id } = req.userId;
-    const foundUser = await User.findById(id);
-
-    console.log("Found user for profile:", foundUser);
+    const foundUser = req.user;
 
     if (!foundUser) {
       return res.status(404).json({

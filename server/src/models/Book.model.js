@@ -30,6 +30,10 @@ const bookSchema = new mongoose.Schema(
       required: [true, "Asset URL is required"],
       unique: true,
     },
+    isFeatured: {
+      type: Boolean,
+      default: false,
+    },
     sellerId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

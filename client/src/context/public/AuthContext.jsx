@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { loginUser, registerUser, logoutUser } from "../../api/endpoints.js";
-import { redirect, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useUI } from "../UIContext.jsx";
 import { toast } from "react-toastify";
 
@@ -14,8 +14,6 @@ const AuthContext = createContext({
 });
 
 export function AuthProvider({ children, initialAuthData }) {
-  console.log("⚓ AuthProvider received initialAuthData:", initialAuthData);
-
   // 1. Initialize state directly from the loader data if it exists
   const [user, setUser] = useState(() => {
     return initialAuthData || { id: null, name: null, role: "guest" };
@@ -29,7 +27,6 @@ export function AuthProvider({ children, initialAuthData }) {
   // loader updates 'initialAuthData'. We MUST sync that back into our local state!
   useEffect(() => {
     if (initialAuthData) {
-      console.log("🔄 Syncing global state with loader data:", initialAuthData);
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setUser(initialAuthData || { id: null, name: null, role: "guest" });
     }
@@ -67,7 +64,6 @@ export function AuthProvider({ children, initialAuthData }) {
   const handleLogin = async (loginCredentials) => {
     try {
       const response = await loginUser(loginCredentials);
-      console.log("Login successful:", response.data);
 
       const userData = response.data.user;
       setUser(userData);

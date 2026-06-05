@@ -3,7 +3,6 @@ import { fetchCurrentUser } from "../api/endpoints.js";
 export async function authLoader() {
   try {
     const currentUser = await fetchCurrentUser();
-    console.log("Auth Loader - Current User:", currentUser);
     return currentUser;
   } catch (error) {
     console.error("Error fetching user profile at auth loader:", error);

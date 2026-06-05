@@ -1,4 +1,3 @@
-// components/common/EmptyState.jsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { OctagonAlert, ArrowLeft, Plus } from "lucide-react";
