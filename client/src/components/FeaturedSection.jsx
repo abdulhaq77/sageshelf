@@ -55,7 +55,7 @@ export default function FeaturedSection() {
                   /* Card alignment and size control properties */
                   <div
                     key={book._id || book.id}
-                    className="min-w-[280px] sm:min-w-[320px] md:min-w-[280px] lg:min-w-[calc(25%-1.5rem)] flex-shrink-0 snap-start"
+                    className="min-w-70 sm:min-w-[320px] md:min-w-70 lg:min-w-[calc(25%-1.5rem)]shrink-0 snap-start"
                   >
                     <BuyerBookCard
                       book={{
@@ -67,7 +67,7 @@ export default function FeaturedSection() {
                           typeof book.price === "number"
                             ? `PKR ${book.price.toLocaleString()}`
                             : book.price,
-                        img: book.img,
+                        img: book.coverUrl,
                         rating: book.rating,
                       }}
                     />
